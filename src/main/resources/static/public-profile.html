@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>SkillSwap — Profile</title>
+  <link rel="stylesheet" href="css/app.css"/>
+  <style>
+    body { background:linear-gradient(135deg,#7c3aed 0%,#4c1d95 60%,#1e1b4b 100%);
+           min-height:100vh; padding:40px 20px; }
+    .container { max-width:600px; margin:0 auto; }
+    .card-profile { background:#fff;border-radius:24px;box-shadow:0 30px 60px rgba(0,0,0,.25);
+                    overflow:hidden; }
+    .card-hero { background:linear-gradient(135deg,#7c3aed,#4c1d95);
+                 padding:40px 32px 24px;text-align:center;position:relative; }
+    .hero-avatar { width:96px;height:96px;border-radius:50%;border:4px solid rgba(255,255,255,.4);
+                   margin:0 auto 16px;object-fit:cover;display:flex;align-items:center;
+                   justify-content:center;font-size:38px;color:#fff;font-weight:800;
+                   background:rgba(255,255,255,.2); }
+    .hero-name  { font-size:24px;font-weight:800;color:#fff;margin-bottom:4px; }
+    .hero-email { font-size:13px;color:rgba(255,255,255,.7); }
+    .hero-status{ display:inline-flex;align-items:center;gap:6px;margin-top:10px;
+                  padding:4px 12px;border-radius:99px;font-size:12px;font-weight:700; }
+    .hero-status.on { background:rgba(16,185,129,.25);color:#6ee7b7; }
+    .hero-status.off{ background:rgba(255,255,255,.15);color:rgba(255,255,255,.6); }
+    .status-dot { width:8px;height:8px;border-radius:50%; }
+    .status-dot.on{background:#10b981;} .status-dot.off{background:#9ca3af;}
+    .share-btn { position:absolute;top:16px;right:16px;background:rgba(255,255,255,.2);
+                 border:1px solid rgba(255,255,255,.3);border-radius:10px;padding:7px 14px;
+                 color:#fff;font-size:12px;font-weight:600;cursor:pointer;
+                 transition:background .2s; }
+    .share-btn:hover { background:rgba(255,255,255,.3); }
+    .card-body  { padding:28px 32px; }
+    .section { margin-bottom:24px; }
+    .section-title { font-size:11px;font-weight:700;text-transform:uppercase;
+                     letter-spacing:.6px;color:#9ca3af;margin-bottom:12px; }
+    .bio-text { font-size:15px;color:#374151;line-height:1.7; }
+    .meta-row { display:flex;align-items:center;gap:8px;font-size:14px;
+                color:#4b5563;margin-bottom:8px; }
+    .tag  { padding:5px 12px;border-radius:99px;font-size:12px;font-weight:600;display:inline-block;margin:3px; }
+    .tag-have { background:#ede9fe;color:#6d28d9; }
+    .tag-want { background:#fef3c7;color:#92400e; }
+    .tag-lang { background:#dbeafe;color:#1d4ed8; }
+    .cta { background:linear-gradient(135deg,#7c3aed,#4c1d95);color:#fff;border:none;
+           padding:13px 28px;border-radius:12px;font-size:15px;font-weight:700;
+           cursor:pointer;width:100%;margin-top:8px;transition:opacity .2s; }
+    .cta:hover { opacity:.9; }
+    .copied-toast { display:none;text-align:center;color:#10b981;font-size:13px;
+                    font-weight:600;margin-top:8px; }
+    @media(max-width:480px){ .card-body{padding:20px;} .card-hero{padding:28px 20px 20px;} }
+  </style>
+</head>
+<body>
+<div class="container">
+  <div style="text-align:center;margin-bottom:20px;">
+    <a href="login.html" style="color:rgba(255,255,255,.7);font-size:14px;text-decoration:none;">
+      🔄 SkillSwap — <span style="text-decoration:underline;">Sign in</span>
+    </a>
+  </div>
+
+  <div class="card-profile" id="profileCard" style="display:none;">
+    <div class="card-hero">
+      <button class="share-btn" onclick="copyLink()">🔗 Copy Link</button>
+      <div class="hero-avatar" id="heroAvatar"></div>
+      <div class="hero-name"  id="heroName"></div>
+      <div class="hero-email" id="heroEmail"></div>
+      <div class="hero-status" id="heroStatus"></div>
+    </div>
+
+    <div class="card-body">
+      <div class="section" id="bioSection" style="display:none;">
+        <div class="section-title">About</div>
+        <div class="bio-text" id="bioPara"></div>
+      </div>
+
+      <div class="section" id="metaSection">
+        <div id="locRow"  class="meta-row" style="display:none;"></div>
+        <div id="langRow" class="meta-row" style="display:none;"></div>
+      </div>
+
+      <div class="section" id="haveSection" style="display:none;">
+        <div class="section-title">Skills I Have</div>
+        <div id="haveTags"></div>
+      </div>
+
+      <div class="section" id="wantSection" style="display:none;">
+        <div class="section-title">Skills I Want</div>
+        <div id="wantTags"></div>
+      </div>
+
+      <div id="ctaSection">
+        <button class="cta" onclick="goSignIn()">
+          🤝 Request a Skill Swap with this person
+        </button>
+        <div class="copied-toast" id="copiedToast">✅ Link copied to clipboard!</div>
+      </div>
+    </div>
+  </div>
+
+  <div id="errorCard" style="display:none;text-align:center;color:rgba(255,255,255,.8);padding:60px 20px;">
+    <div style="font-size:48px;margin-bottom:16px;">😕</div>
+    <div style="font-size:18px;font-weight:700;">User not found</div>
+    <div style="font-size:14px;margin-top:8px;">This profile link may be invalid.</div>
+    <a href="login.html" style="display:inline-block;margin-top:20px;padding:10px 24px;
+       background:#fff;color:#7c3aed;border-radius:10px;font-weight:700;text-decoration:none;">
+      Go to SkillSwap
+    </a>
+  </div>
+
+  <div id="loadCard" style="text-align:center;color:rgba(255,255,255,.7);padding:60px 20px;">
+    <div style="font-size:32px;margin-bottom:12px;">⏳</div>
+    <div>Loading profile…</div>
+  </div>
+</div>
+
+<script>
+  const params = new URLSearchParams(window.location.search);
+  const userId = params.get('id');
+
+  function escHtml(s){ return String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+  function initials(name){
+    if(!name)return '?';
+    return name.trim().split(/\s+/).map(w=>w[0]).join('').toUpperCase().slice(0,2);
+  }
+  function stringToColor(str){
+    const p=['#7c3aed','#6d28d9','#4f46e5','#2563eb','#0891b2','#059669','#d97706','#dc2626'];
+    let hash=0; for(let i=0;i<(str||'').length;i++) hash=str.charCodeAt(i)+((hash<<5)-hash);
+    return p[Math.abs(hash)%p.length];
+  }
+
+  async function loadProfile(){
+    if(!userId){
+      document.getElementById('loadCard').style.display='none';
+      document.getElementById('errorCard').style.display='block';
+      return;
+    }
+    try{
+      const res  = await fetch('/auth/public/'+userId);
+      const json = await res.json();
+      if(!res.ok||!json.success) throw new Error('Not found');
+      const u = json.data;
+
+      // Avatar
+      const av = document.getElementById('heroAvatar');
+      if(u.avatarBase64){
+        av.innerHTML=`<img src="${escHtml(u.avatarBase64)}" style="width:96px;height:96px;border-radius:50%;object-fit:cover;"/>`;
+      } else {
+        av.style.background=stringToColor(u.name);
+        av.textContent=initials(u.name);
+      }
+
+      document.getElementById('heroName').textContent  = u.name  || '';
+      document.getElementById('heroEmail').textContent = u.email || '';
+
+      // Online status
+      const st = document.getElementById('heroStatus');
+      const on = u.online || false;
+      st.className = 'hero-status '+(on?'on':'off');
+      st.innerHTML = `<span class="status-dot ${on?'on':'off'}"></span>${on?'🟢 Online now':'Last seen recently'}`;
+
+      // Bio
+      if(u.bio){
+        document.getElementById('bioPara').textContent=u.bio;
+        document.getElementById('bioSection').style.display='block';
+      }
+
+      // Location
+      if(u.location){
+        const lr=document.getElementById('locRow');
+        lr.innerHTML=`<span style="font-size:16px;">📍</span> ${escHtml(u.location)}`;
+        lr.style.display='flex';
+      }
+
+      // Languages
+      if(u.languages){
+        const lr=document.getElementById('langRow');
+        lr.innerHTML=`<span style="font-size:16px;">🗣</span> ${escHtml(u.languages)}`;
+        lr.style.display='flex';
+      }
+
+      // Skills have
+      if(u.skillsHave){
+        const tags=u.skillsHave.split(',').map(s=>s.trim()).filter(Boolean);
+        document.getElementById('haveTags').innerHTML=tags.map(t=>`<span class="tag tag-have">${escHtml(t)}</span>`).join('');
+        document.getElementById('haveSection').style.display='block';
+      }
+
+      // Skills want
+      if(u.skillsWant){
+        const tags=u.skillsWant.split(',').map(s=>s.trim()).filter(Boolean);
+        document.getElementById('wantTags').innerHTML=tags.map(t=>`<span class="tag tag-want">${escHtml(t)}</span>`).join('');
+        document.getElementById('wantSection').style.display='block';
+      }
+
+      // Set page title
+      document.title = (u.name||'User') + ' — SkillSwap';
+
+      document.getElementById('loadCard').style.display='none';
+      document.getElementById('profileCard').style.display='block';
+
+    } catch(e){
+      document.getElementById('loadCard').style.display='none';
+      document.getElementById('errorCard').style.display='block';
+    }
+  }
+
+  function copyLink(){
+    const url = window.location.origin + '/public-profile.html?id=' + userId;
+    navigator.clipboard.writeText(url).then(()=>{
+      const t=document.getElementById('copiedToast');
+      t.style.display='block';
+      setTimeout(()=>t.style.display='none',3000);
+    });
+  }
+
+  function goSignIn(){
+    // After login, redirect back here
+    sessionStorage.setItem('afterLoginRedirect', window.location.href);
+    window.location.href='login.html';
+  }
+
+  loadProfile();
+</script>
+</body>
+</html>

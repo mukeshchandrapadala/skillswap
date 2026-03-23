@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>SkillSwap — Login</title>
+  <link rel="stylesheet" href="css/app.css"/>
+  <style>
+    body { display:flex;align-items:center;justify-content:center;min-height:100vh;
+           background:linear-gradient(135deg,#7c3aed,#4c1d95);padding:20px; }
+    .box { background:#fff;border-radius:20px;box-shadow:0 25px 50px rgba(0,0,0,.25);
+           padding:48px 40px;width:100%;max-width:420px; }
+    .logo { text-align:center;margin-bottom:32px; }
+    .logo-icon { width:60px;height:60px;background:linear-gradient(135deg,#7c3aed,#4c1d95);
+                 border-radius:16px;display:inline-flex;align-items:center;
+                 justify-content:center;font-size:30px;margin-bottom:12px; }
+    .logo h1 { font-size:26px;font-weight:800;color:#1e1b4b; }
+    .logo p  { color:#6b7280;font-size:14px;margin-top:4px; }
+    .foot { text-align:center;margin-top:22px;font-size:14px;color:#6b7280; }
+    .foot a { color:#7c3aed;font-weight:700;text-decoration:none; }
+    .foot a:hover { text-decoration:underline; }
+    .pwd-wrap { position:relative; }
+    .pwd-wrap input { padding-right:44px; }
+    .pwd-toggle { position:absolute;right:12px;top:50%;transform:translateY(-50%);
+                  background:none;border:none;cursor:pointer;color:#9ca3af;font-size:18px; }
+    .pwd-toggle:hover { color:#7c3aed; }
+  </style>
+</head>
+<body>
+<div class="box">
+  <div class="logo">
+    <div class="logo-icon">🔄</div>
+    <h1>SkillSwap</h1>
+    <p>Sign in to your account</p>
+  </div>
+  <div class="alert" id="alert"></div>
+  <form id="form" novalidate>
+    <div class="input-group">
+      <label>Email Address</label>
+      <input type="email" id="email" placeholder="you@example.com" autocomplete="email"/>
+    </div>
+    <div class="input-group">
+      <label>Password</label>
+      <div class="pwd-wrap">
+        <input type="password" id="password" placeholder="••••••••" autocomplete="current-password"/>
+        <button type="button" class="pwd-toggle" id="pwdToggle" onclick="togglePwd()">👁</button>
+      </div>
+    </div>
+    <button type="submit" class="btn btn-primary btn-full" id="btn" style="margin-top:6px;">Sign In</button>
+  </form>
+  <div class="foot">No account? <a href="register.html">Create one →</a></div>
+</div>
+
+<script src="js/api.js"></script>
+<script>
+  // ── FIXED: Only redirect if already logged in — do NOT clear other tabs' sessions
+  // Each tab manages its own sessionStorage key so multiple users can be logged in simultaneously
+  const TAB_TOKEN = sessionStorage.getItem('ss_tab_token');
+  const TAB_USER  = sessionStorage.getItem('ss_tab_user');
+  if (TAB_TOKEN) {
+    // This tab already has a session — go to dashboard
+    window.location.href = 'dashboard.html';
+  }
+
+  function togglePwd() {
+    const inp = document.getElementById('password');
+    inp.type = inp.type === 'password' ? 'text' : 'password';
+    document.getElementById('pwdToggle').textContent = inp.type === 'password' ? '👁' : '🙈';
+  }
+
+  const alertEl = document.getElementById('alert');
+  const btn     = document.getElementById('btn');
+
+  function setAlert(msg, type) {
+    alertEl.textContent = msg; alertEl.className = 'alert ' + type; alertEl.style.display = 'block';
+  }
+  function setLoading(on) {
+    btn.disabled = on;
+    btn.innerHTML = on ? '<span class="spinner"></span>Signing in…' : 'Sign In';
+  }
+
+  document.getElementById('form').addEventListener('submit', async e => {
+    e.preventDefault(); alertEl.style.display = 'none';
+    const email    = document.getElementById('email').value.trim();
+    const password = document.getElementById('password').value;
+    if (!email || !password) { setAlert('Please fill in all fields.', 'error'); return; }
+    setLoading(true);
+    try {
+      const res  = await fetch('/auth/login', {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ email, password })
+      });
+      const json = await res.json();
+      if (!res.ok || !json.success) { setAlert(json.message || 'Login failed.', 'error'); return; }
+      // Save to sessionStorage (tab-isolated) instead of localStorage
+      saveSession(json.data);
+      setAlert('Login successful! Redirecting…', 'success');
+      setTimeout(() => window.location.href = 'dashboard.html', 700);
+    } catch { setAlert('Network error — is the server running?', 'error'); }
+    finally   { setLoading(false); }
+  });
+</script>
+</body>
+</html>

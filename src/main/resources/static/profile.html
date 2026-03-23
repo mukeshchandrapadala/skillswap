@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>SkillSwap — Edit Profile</title>
+  <link rel="stylesheet" href="css/app.css"/>
+
+  <datalist id="langList">
+    <option>English</option><option>Hindi</option><option>Telugu</option>
+    <option>Tamil</option><option>Kannada</option><option>Malayalam</option>
+    <option>Marathi</option><option>Bengali</option><option>Gujarati</option>
+    <option>Punjabi</option><option>Urdu</option><option>Odia</option>
+    <option>Mandarin</option><option>Spanish</option><option>French</option>
+    <option>Arabic</option><option>Portuguese</option><option>Russian</option>
+    <option>Japanese</option><option>Korean</option><option>German</option>
+    <option>Italian</option><option>Turkish</option><option>Dutch</option>
+    <option>Polish</option><option>Swedish</option><option>Greek</option>
+    <option>Hebrew</option><option>Indonesian</option><option>Thai</option>
+    <option>Vietnamese</option><option>Swahili</option>
+  </datalist>
+
+  <datalist id="locList">
+    <option>Hyderabad, India</option><option>Mumbai, India</option>
+    <option>Delhi, India</option><option>Bengaluru, India</option>
+    <option>Chennai, India</option><option>Kolkata, India</option>
+    <option>Pune, India</option><option>Ahmedabad, India</option>
+    <option>Jaipur, India</option><option>Lucknow, India</option>
+    <option>New York, USA</option><option>San Francisco, USA</option>
+    <option>London, UK</option><option>Toronto, Canada</option>
+    <option>Sydney, Australia</option><option>Berlin, Germany</option>
+    <option>Paris, France</option><option>Tokyo, Japan</option>
+    <option>Singapore</option><option>Dubai, UAE</option>
+  </datalist>
+
+  <style>
+    .main  { max-width:700px;margin:32px auto;padding:0 20px; }
+    .phdr  { display:flex;align-items:center;gap:20px;margin-bottom:28px; }
+    .av-wrap { position:relative;cursor:pointer;width:90px;height:90px;flex-shrink:0; }
+    .av-wrap:hover .av-ov { opacity:1; }
+    .av-img  { width:90px;height:90px;border-radius:20px;object-fit:cover;display:block; }
+    .av-ph   { width:90px;height:90px;border-radius:20px;display:flex;align-items:center;
+               justify-content:center;font-size:34px;color:#fff;font-weight:800; }
+    .av-ov   { position:absolute;inset:0;border-radius:20px;background:rgba(0,0,0,.45);
+               display:flex;align-items:center;justify-content:center;
+               color:#fff;font-size:22px;opacity:0;transition:opacity .2s; }
+    .ph-info h2 { font-size:22px;font-weight:800; }
+    .ph-info p  { color:var(--muted);font-size:13px;margin-top:3px; }
+    .sec { margin-bottom:22px; }
+    .sec-title { font-size:11px;font-weight:700;text-transform:uppercase;
+                 letter-spacing:.6px;color:#9ca3af;margin-bottom:14px;
+                 display:flex;align-items:center;gap:8px; }
+    .sec-title::before,.sec-title::after { content:'';flex:1;height:1px;background:#e5e7eb; }
+    .row2 { display:grid;grid-template-columns:1fr 1fr;gap:16px; }
+    .lang-tags { display:flex;flex-wrap:wrap;gap:6px;margin-top:8px; }
+    .lang-tag  { display:flex;align-items:center;gap:5px;padding:4px 10px;
+                 background:#ede9fe;color:#6d28d9;border-radius:99px;
+                 font-size:12px;font-weight:600; }
+    .lang-tag button { background:none;border:none;cursor:pointer;color:#6d28d9;
+                       font-size:15px;line-height:1;padding:0; }
+    .char-count { font-size:11px;color:#9ca3af;text-align:right;margin-top:3px; }
+    @media(max-width:520px){ .row2{grid-template-columns:1fr;} .phdr{flex-direction:column;text-align:center;} }
+  </style>
+</head>
+<body>
+
+<nav class="navbar">
+  <a href="dashboard.html" class="nav-brand"><span>🔄</span> SkillSwap</a>
+  <div class="nav-right">
+    <a href="dashboard.html" class="nav-user-pill" style="font-size:13px;">← Dashboard</a>
+    <div class="nav-divider"></div>
+    <button class="btn-logout" onclick="confirmLogout()">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+           stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+        <polyline points="16 17 21 12 16 7"/>
+        <line x1="21" y1="12" x2="9" y2="12"/>
+      </svg>
+      Logout
+    </button>
+  </div>
+</nav>
+
+<!-- Logout modal -->
+<div id="logoutModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);
+     z-index:1000;align-items:center;justify-content:center;">
+  <div style="background:#fff;border-radius:16px;padding:32px;max-width:360px;width:90%;
+              box-shadow:0 20px 40px rgba(0,0,0,.2);text-align:center;">
+    <div style="font-size:40px;margin-bottom:12px;">👋</div>
+    <h3 style="font-size:18px;font-weight:800;color:#1e1b4b;margin-bottom:8px;">Sign out?</h3>
+    <p style="font-size:14px;color:#6b7280;margin-bottom:24px;">You'll need to sign in again to access your account.</p>
+    <div style="display:flex;gap:10px;">
+      <button onclick="closeLogoutModal()"
+        style="flex:1;padding:10px;border:1.5px solid #e5e7eb;border-radius:10px;
+               font-size:14px;font-weight:600;cursor:pointer;background:#fff;color:#374151;">
+        Cancel
+      </button>
+      <button onclick="doLogout()"
+        style="flex:1;padding:10px;border:none;border-radius:10px;
+               font-size:14px;font-weight:600;cursor:pointer;
+               background:linear-gradient(135deg,#ef4444,#dc2626);color:#fff;">
+        Yes, Sign Out
+      </button>
+    </div>
+  </div>
+</div>
+
+<div class="main">
+  <div class="card">
+
+    <!-- Header -->
+    <div class="phdr">
+      <div class="av-wrap" onclick="document.getElementById('avIn').click()" title="Click to change photo">
+        <div id="avDisp"></div>
+        <div class="av-ov">📷 Change</div>
+      </div>
+      <div class="ph-info">
+        <h2 id="phName">Loading…</h2>
+        <p id="phEmail"></p>
+        <p id="phLoc" style="margin-top:4px;"></p>
+        <p id="phLang" style="margin-top:2px;color:#6d28d9;font-size:12px;"></p>
+      </div>
+    </div>
+    <input type="file" id="avIn" accept="image/*" style="display:none"/>
+
+    <div class="alert" id="alert"></div>
+
+    <!-- Personal -->
+    <div class="sec">
+      <div class="sec-title">Personal Info</div>
+      <div class="row2">
+        <div class="input-group"><label>Full Name</label>
+          <input type="text" id="name"/></div>
+        <div class="input-group"><label>Location</label>
+          <input type="text" id="location" placeholder="City, Country" list="locList" autocomplete="off"/></div>
+      </div>
+      <div class="input-group">
+        <label>Bio</label>
+        <textarea id="bio" placeholder="Tell people about yourself…" maxlength="500"
+                  oninput="document.getElementById('bioCount').textContent=this.value.length+'/500'"></textarea>
+        <div class="char-count" id="bioCount">0/500</div>
+      </div>
+    </div>
+
+    <!-- Skills -->
+    <div class="sec">
+      <div class="sec-title">Skills</div>
+      <div class="row2">
+        <div class="input-group"><label>Skills I Have</label>
+          <input type="text" id="skillsHave" placeholder="Python, Design…"/></div>
+        <div class="input-group"><label>Skills I Want</label>
+          <input type="text" id="skillsWant" placeholder="React, Finance…"/></div>
+      </div>
+    </div>
+
+    <!-- Languages -->
+    <div class="sec">
+      <div class="sec-title">Languages I Speak</div>
+      <div style="display:flex;gap:8px;">
+        <input type="text" id="langInput" placeholder="Type a language and press Enter…"
+               list="langList" autocomplete="off" style="flex:1;"
+               onkeydown="if(event.key==='Enter'){event.preventDefault();addLang();}"/>
+        <button class="btn btn-ghost btn-sm" onclick="addLang()">+ Add</button>
+      </div>
+      <div class="lang-tags" id="langTags"></div>
+    </div>
+
+    <div style="display:flex;gap:12px;align-items:center;">
+      <button class="btn btn-primary" id="saveBtn" onclick="save()">💾 Save Changes</button>
+      <span id="saveStatus" style="font-size:13px;color:#10b981;display:none;">✅ Saved!</span>
+    </div>
+
+  </div>
+</div>
+
+<script src="js/api.js"></script>
+<script>
+  requireAuth();
+  let pendingAvatar = null;
+  let languages     = [];
+
+  function confirmLogout() { document.getElementById('logoutModal').style.display='flex'; }
+  function closeLogoutModal() { document.getElementById('logoutModal').style.display='none'; }
+  document.getElementById('logoutModal').addEventListener('click', function(e){ if(e.target===this) closeLogoutModal(); });
+
+  async function load() {
+    try {
+      const u = await GET('/auth/me');
+      document.getElementById('phName').textContent  = u.name  || '';
+      document.getElementById('phEmail').textContent = u.email || '';
+      document.getElementById('phLoc').textContent   = u.location  ? '📍 ' + u.location  : '';
+      document.getElementById('phLang').textContent  = u.languages ? '🗣 ' + u.languages : '';
+      document.getElementById('name').value       = u.name       || '';
+      document.getElementById('location').value   = u.location   || '';
+      document.getElementById('bio').value        = u.bio        || '';
+      document.getElementById('skillsHave').value = u.skillsHave || '';
+      document.getElementById('skillsWant').value = u.skillsWant || '';
+      const bioEl = document.getElementById('bio');
+      document.getElementById('bioCount').textContent = (bioEl.value.length) + '/500';
+
+      languages = u.languages ? u.languages.split(',').map(l=>l.trim()).filter(Boolean) : [];
+      renderLangTags();
+
+      const disp = document.getElementById('avDisp');
+      if (u.avatarBase64) {
+        disp.innerHTML = `<img class="av-img" src="${escHtml(u.avatarBase64)}"/>`;
+        pendingAvatar  = u.avatarBase64;
+      } else {
+        const div = document.createElement('div');
+        div.className = 'av-ph';
+        div.style.background = stringToColor(u.name);
+        div.textContent = initials(u.name);
+        disp.appendChild(div);
+      }
+    } catch(e) { toast('Failed to load profile: ' + e.message, 'error'); }
+  }
+
+  function addLang() {
+    const inp = document.getElementById('langInput');
+    const val = inp.value.trim();
+    if (!val) return;
+    if (languages.map(l=>l.toLowerCase()).includes(val.toLowerCase())) {
+      toast('Already added', 'warn'); inp.value=''; return;
+    }
+    languages.push(val); inp.value='';
+    renderLangTags();
+  }
+
+  function removeLang(i) { languages.splice(i,1); renderLangTags(); }
+
+  function renderLangTags() {
+    const el = document.getElementById('langTags');
+    if (!languages.length) {
+      el.innerHTML='<span style="font-size:13px;color:var(--muted);">No languages added yet</span>';
+      return;
+    }
+    el.innerHTML = languages.map((l,i) => `
+      <span class="lang-tag">🗣 ${escHtml(l)}
+        <button onclick="removeLang(${i})" title="Remove">×</button>
+      </span>`).join('');
+  }
+
+  document.getElementById('avIn').addEventListener('change', e => {
+    const file = e.target.files[0];
+    if (!file) return;
+    if (file.size > 2*1024*1024) { toast('Image must be under 2 MB', 'error'); return; }
+    const reader = new FileReader();
+    reader.onload = ev => {
+      pendingAvatar = ev.target.result;
+      document.getElementById('avDisp').innerHTML = `<img class="av-img" src="${escHtml(pendingAvatar)}"/>`;
+      toast('Photo ready — click Save to apply');
+    };
+    reader.readAsDataURL(file);
+  });
+
+  async function save() {
+    const btn      = document.getElementById('saveBtn');
+    const alertEl  = document.getElementById('alert');
+    const statusEl = document.getElementById('saveStatus');
+    alertEl.style.display  = 'none';
+    statusEl.style.display = 'none';
+    btn.disabled = true; btn.innerHTML = '<span class="spinner"></span>Saving…';
+    try {
+      const updated = await PUT('/auth/profile', {
+        name:         document.getElementById('name').value.trim(),
+        location:     document.getElementById('location').value.trim(),
+        bio:          document.getElementById('bio').value.trim(),
+        skillsHave:   document.getElementById('skillsHave').value.trim(),
+        skillsWant:   document.getElementById('skillsWant').value.trim(),
+        languages:    languages.join(', '),
+        avatarBase64: pendingAvatar
+      });
+      updateUser(updated);
+      document.getElementById('phName').textContent  = updated.name || '';
+      document.getElementById('phLoc').textContent   = updated.location  ? '📍 '+updated.location : '';
+      document.getElementById('phLang').textContent  = updated.languages ? '🗣 '+updated.languages : '';
+      statusEl.style.display = 'inline';
+      setTimeout(() => statusEl.style.display='none', 3000);
+      toast('Profile saved!');
+    } catch(e) {
+      alertEl.textContent = e.message; alertEl.className='alert error'; alertEl.style.display='block';
+    } finally {
+      btn.disabled=false; btn.innerHTML='💾 Save Changes';
+    }
+  }
+
+  load();
+</script>
+</body>
+</html>

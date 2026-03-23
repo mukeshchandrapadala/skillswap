@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>SkillSwap — Exchange Skills, Grow Together</title>
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:'Segoe UI',system-ui,sans-serif;background:#0f0a1e;color:#fff;min-height:100vh;}
+    nav{display:flex;align-items:center;justify-content:space-between;padding:18px 48px;position:fixed;top:0;width:100%;z-index:100;background:rgba(15,10,30,.85);backdrop-filter:blur(12px);border-bottom:1px solid rgba(124,58,237,.2);}
+    .brand{font-size:22px;font-weight:800;color:#fff;text-decoration:none;display:flex;align-items:center;gap:8px;}
+    .nav-links{display:flex;align-items:center;gap:12px;}
+    .btn-outline{padding:8px 20px;border:1.5px solid rgba(167,139,250,.5);border-radius:10px;color:#a78bfa;font-size:14px;font-weight:600;text-decoration:none;transition:all .2s;}
+    .btn-outline:hover{background:rgba(124,58,237,.15);border-color:#a78bfa;}
+    .btn-fill{padding:9px 22px;background:linear-gradient(135deg,#7c3aed,#4c1d95);border-radius:10px;color:#fff;font-size:14px;font-weight:600;text-decoration:none;transition:opacity .2s;}
+    .btn-fill:hover{opacity:.85;}
+    /* Hero */
+    .hero{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:100px 24px 60px;background:radial-gradient(ellipse 80% 60% at 50% 0%,rgba(124,58,237,.35) 0%,transparent 70%);}
+    .hero-badge{display:inline-flex;align-items:center;gap:7px;padding:6px 16px;background:rgba(124,58,237,.2);border:1px solid rgba(167,139,250,.3);border-radius:99px;font-size:13px;color:#c4b5fd;margin-bottom:28px;}
+    .hero h1{font-size:clamp(36px,6vw,72px);font-weight:900;line-height:1.1;letter-spacing:-.03em;max-width:800px;background:linear-gradient(135deg,#fff 0%,#a78bfa 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:20px;}
+    .hero p{font-size:18px;color:#c4b5fd;max-width:540px;line-height:1.65;margin-bottom:36px;}
+    .hero-cta{display:flex;gap:14px;flex-wrap:wrap;justify-content:center;}
+    .btn-hero{padding:14px 32px;border-radius:12px;font-size:16px;font-weight:700;text-decoration:none;transition:all .2s;}
+    .btn-hero-primary{background:linear-gradient(135deg,#7c3aed,#4c1d95);color:#fff;box-shadow:0 4px 24px rgba(124,58,237,.4);}
+    .btn-hero-primary:hover{box-shadow:0 6px 32px rgba(124,58,237,.6);transform:translateY(-2px);}
+    .btn-hero-ghost{border:1.5px solid rgba(167,139,250,.4);color:#a78bfa;}
+    .btn-hero-ghost:hover{background:rgba(124,58,237,.15);}
+    /* Stats */
+    .stats{display:flex;gap:48px;justify-content:center;flex-wrap:wrap;margin-top:60px;}
+    .stat{text-align:center;}
+    .stat .n{font-size:36px;font-weight:800;color:#a78bfa;}
+    .stat .l{font-size:13px;color:#6b7280;margin-top:4px;}
+    /* Features */
+    .section{padding:80px 24px;max-width:1100px;margin:0 auto;}
+    .section-label{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#a78bfa;margin-bottom:12px;}
+    .section-title{font-size:clamp(26px,4vw,42px);font-weight:800;margin-bottom:16px;color:#fff;}
+    .section-sub{font-size:16px;color:#6b7280;max-width:520px;line-height:1.65;}
+    .features-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:20px;margin-top:48px;}
+    .feature-card{background:rgba(255,255,255,.04);border:1px solid rgba(124,58,237,.2);border-radius:16px;padding:24px;transition:border-color .2s,transform .2s;}
+    .feature-card:hover{border-color:rgba(167,139,250,.5);transform:translateY(-3px);}
+    .feature-icon{font-size:30px;margin-bottom:14px;}
+    .feature-title{font-size:16px;font-weight:700;margin-bottom:8px;color:#fff;}
+    .feature-desc{font-size:14px;color:#6b7280;line-height:1.6;}
+    /* How it works */
+    .steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:24px;margin-top:48px;}
+    .step{text-align:center;padding:20px;}
+    .step-num{width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,#7c3aed,#4c1d95);display:inline-flex;align-items:center;justify-content:center;font-size:18px;font-weight:800;margin-bottom:14px;}
+    .step h3{font-size:16px;font-weight:700;margin-bottom:8px;color:#fff;}
+    .step p{font-size:14px;color:#6b7280;line-height:1.6;}
+    /* CTA section */
+    .cta-section{text-align:center;padding:80px 24px;background:linear-gradient(135deg,rgba(124,58,237,.15),rgba(76,29,149,.15));border-top:1px solid rgba(124,58,237,.2);}
+    .cta-section h2{font-size:clamp(24px,4vw,42px);font-weight:800;margin-bottom:16px;}
+    .cta-section p{color:#6b7280;font-size:16px;margin-bottom:32px;}
+    footer{padding:32px 48px;border-top:1px solid rgba(124,58,237,.15);display:flex;justify-content:space-between;align-items:center;color:#6b7280;font-size:13px;flex-wrap:wrap;gap:12px;}
+    @media(max-width:600px){nav{padding:16px 20px;} footer{padding:24px 20px;justify-content:center;text-align:center;} .stats{gap:28px;}}
+  </style>
+</head>
+<body>
+<nav>
+  <a href="index.html" class="brand">🔄 SkillSwap</a>
+  <div class="nav-links">
+    <a href="login.html" class="btn-outline">Sign In</a>
+    <a href="register.html" class="btn-fill">Get Started →</a>
+  </div>
+</nav>
+
+<div class="hero">
+  <div class="hero-badge">✨ Free to use · No ads · Open source</div>
+  <h1>Exchange Skills.<br/>Grow Together.</h1>
+  <p>Find people who have what you need. Offer what you know. Connect across languages and build something great.</p>
+  <div class="hero-cta">
+    <a href="register.html" class="btn-hero btn-hero-primary">Start Swapping →</a>
+    <a href="login.html"    class="btn-hero btn-hero-ghost">Sign In</a>
+  </div>
+  <div class="stats">
+    <div class="stat"><div class="n">100+</div><div class="l">Skills Listed</div></div>
+    <div class="stat"><div class="n">50+</div><div class="l">Languages</div></div>
+    <div class="stat"><div class="n">∞</div><div class="l">Possibilities</div></div>
+  </div>
+</div>
+
+<div style="background:#0f0a1e;padding:0 0 80px;">
+  <div class="section">
+    <div class="section-label">Features</div>
+    <div class="section-title">Everything you need to swap skills</div>
+    <div class="section-sub">A full platform built for real human connection — no subscriptions, no paywalls.</div>
+    <div class="features-grid">
+      <div class="feature-card"><div class="feature-icon">🔐</div><div class="feature-title">Secure Auth</div><div class="feature-desc">JWT-based login keeps your account safe. Your password is always encrypted.</div></div>
+      <div class="feature-card"><div class="feature-icon">🗣</div><div class="feature-title">Language Matching</div><div class="feature-desc">Tag the languages you speak. Find people you can actually communicate with.</div></div>
+      <div class="feature-card"><div class="feature-icon">🔍</div><div class="feature-title">Smart Search</div><div class="feature-desc">Search by skill, name, or language. Filter to find exactly who you need.</div></div>
+      <div class="feature-card"><div class="feature-icon">💬</div><div class="feature-title">Real-time Chat</div><div class="feature-desc">Message matched users instantly. No refresh needed — messages appear live.</div></div>
+      <div class="feature-card"><div class="feature-icon">🔔</div><div class="feature-title">Live Notifications</div><div class="feature-desc">Get notified the moment someone sends you a swap request or a message.</div></div>
+      <div class="feature-card"><div class="feature-icon">✏️</div><div class="feature-title">Rich Profiles</div><div class="feature-desc">Upload a photo, write a bio, list your location and all your languages.</div></div>
+    </div>
+  </div>
+
+  <div class="section" style="text-align:center;">
+    <div class="section-label">How it works</div>
+    <div class="section-title">Three simple steps</div>
+    <div class="steps">
+      <div class="step"><div class="step-num">1</div><h3>Create your profile</h3><p>Sign up, add your skills, languages you speak, and a short bio.</p></div>
+      <div class="step"><div class="step-num">2</div><h3>Find someone to swap with</h3><p>Search by skill or language. View profiles, then send a swap request.</p></div>
+      <div class="step"><div class="step-num">3</div><h3>Connect and grow</h3><p>Chat, plan your exchange, and start learning from each other.</p></div>
+    </div>
+  </div>
+</div>
+
+<div class="cta-section">
+  <h2>Ready to start?</h2>
+  <p>It's free. It takes 30 seconds. No credit card needed.</p>
+  <a href="register.html" class="btn-hero btn-hero-primary">Create your account →</a>
+</div>
+
+<footer>
+  <span>🔄 SkillSwap — Built with Spring Boot &amp; ❤️</span>
+  <span>© 2024 SkillSwap. Free &amp; Open Source.</span>
+</footer>
+</body>
+</html>

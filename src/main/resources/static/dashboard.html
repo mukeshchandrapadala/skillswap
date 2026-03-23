@@ -1,0 +1,640 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>SkillSwap — Dashboard</title>
+  <link rel="stylesheet" href="css/app.css"/>
+  <style>
+    .layout{display:grid;grid-template-columns:260px 1fr;gap:20px;
+            max-width:1140px;margin:24px auto;padding:0 16px;}
+    .sidebar{display:flex;flex-direction:column;gap:16px;}
+    .pmini{display:flex;flex-direction:column;align-items:center;text-align:center;padding:20px 14px;}
+    .pmini .pn{font-weight:800;font-size:16px;margin-top:10px;}
+    .pmini .pe,.pmini .pl{color:var(--muted);font-size:12px;margin-top:2px;}
+    .pmini .plang{font-size:12px;color:#6d28d9;margin-top:3px;}
+    .pmini .pb{font-size:13px;color:#4b5563;margin-top:7px;line-height:1.5;}
+    /* Online */
+    .online-dot{width:9px;height:9px;border-radius:50%;display:inline-block;flex-shrink:0;}
+    .online-dot.on{background:#10b981;box-shadow:0 0 0 2px #fff,0 0 0 3px #10b981;}
+    .online-dot.off{background:#d1d5db;}
+    .online-badge{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:600;}
+    .online-badge.on{color:#10b981;} .online-badge.off{color:#9ca3af;}
+    .av-online{position:relative;display:inline-block;flex-shrink:0;}
+    .av-online .dot{position:absolute;bottom:1px;right:1px;width:10px;height:10px;
+                    border-radius:50%;border:2px solid #fff;}
+    .av-online .dot.on{background:#10b981;} .av-online .dot.off{background:#d1d5db;}
+    /* Filters */
+    .filter-bar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;
+                padding:14px;background:#f5f3ff;border-radius:12px;}
+    .filter-label{font-size:11px;font-weight:700;text-transform:uppercase;
+                  letter-spacing:.5px;color:var(--muted);width:100%;margin-bottom:-4px;}
+    .filter-bar input{flex:1;min-width:110px;padding:8px 11px;
+                      border:1.5px solid #e5e7eb;border-radius:8px;font-size:13px;background:#fff;
+                      color:var(--text);outline:none;}
+    .filter-bar input:focus{border-color:var(--purple);}
+    /* Chat */
+    .chat-wrap{display:flex;flex-direction:column;height:460px;}
+    .chat-hdr{display:flex;align-items:center;gap:10px;padding-bottom:10px;
+              border-bottom:1px solid var(--border);margin-bottom:10px;flex-shrink:0;}
+    .chat-back{cursor:pointer;font-size:19px;padding:2px 7px;border-radius:6px;}
+    .chat-back:hover{background:var(--purple-light);}
+    .chat-msgs{flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:7px;padding-right:3px;}
+    .msg{max-width:72%;padding:9px 13px;border-radius:13px;font-size:14px;line-height:1.5;word-break:break-word;}
+    .msg.mine{background:linear-gradient(135deg,var(--purple),var(--purple-dark));color:#fff;align-self:flex-end;border-bottom-right-radius:3px;}
+    .msg.theirs{background:#f3f4f6;color:var(--text);align-self:flex-start;border-bottom-left-radius:3px;}
+    .msg-time{font-size:10px;opacity:.6;margin-top:2px;}
+    .chat-foot{display:flex;gap:8px;margin-top:10px;flex-shrink:0;}
+    .chat-foot input{flex:1;}
+    .pitem{display:flex;align-items:center;gap:9px;padding:8px 9px;border-radius:9px;cursor:pointer;transition:background .15s;}
+    .pitem:hover{background:var(--purple-light);}
+    .pname2{font-weight:600;font-size:14px;} .psub{font-size:11px;color:var(--muted);}
+    /* User cards */
+    .ucard{display:flex;align-items:flex-start;gap:12px;padding:13px;
+           border:1.5px solid var(--border);border-radius:12px;margin-bottom:9px;transition:border-color .15s;}
+    .ucard:hover{border-color:var(--purple);}
+    .uinfo{flex:1;min-width:0;}
+    .uname{font-weight:700;font-size:15px;}
+    .umeta{font-size:12px;color:var(--muted);margin-top:2px;}
+    .ulang{font-size:12px;color:#6d28d9;margin-top:2px;}
+    .ubio{font-size:13px;color:#4b5563;margin-top:4px;
+          white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+    .swap-row{margin-top:9px;display:grid;grid-template-columns:1fr 1fr auto;gap:7px;}
+    .swap-row input{padding:7px 9px;font-size:13px;}
+    .uactions{display:flex;gap:7px;margin-top:8px;flex-wrap:wrap;}
+    .rcard{border:1.5px solid var(--border);border-radius:12px;padding:13px;margin-bottom:9px;}
+    .rtop{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:5px;}
+    .rtitle{font-weight:700;font-size:14px;display:flex;align-items:center;gap:7px;}
+    .rsub{font-size:12px;color:var(--muted);margin-top:2px;}
+    .racts{display:flex;gap:7px;margin-top:9px;flex-wrap:wrap;}
+    .sk{margin-bottom:10px;display:flex;gap:9px;}
+    /* Mobile sidebar drawer */
+    @media(max-width:860px){
+      .layout{grid-template-columns:1fr;}
+      .sidebar{display:none;}
+      .sidebar.drawer-open{
+        display:flex;position:fixed;left:0;top:60px;bottom:0;width:280px;
+        background:var(--bg);z-index:150;padding:16px;
+        box-shadow:4px 0 20px rgba(0,0,0,.15);overflow-y:auto;
+      }
+    }
+    @media(max-width:520px){
+      .swap-row{grid-template-columns:1fr 1fr;}
+      .swap-row button{grid-column:1/-1;}
+      .filter-bar input{min-width:calc(50% - 8px);}
+    }
+    /* Drawer overlay */
+    .drawer-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.3);z-index:140;}
+    .drawer-overlay.show{display:block;}
+  </style>
+</head>
+<body>
+
+<nav class="navbar">
+  <div style="display:flex;align-items:center;gap:8px;">
+    <!-- Mobile sidebar toggle -->
+    <button class="nav-hamburger" onclick="toggleSidebar()" title="Menu">☰</button>
+    <a href="dashboard.html" class="nav-brand"><span>🔄</span> SkillSwap</a>
+  </div>
+  <div class="nav-right" id="navRight">
+    <!-- These are desktop-visible; on mobile they go into hamburger menu via JS -->
+    <button class="nav-icon-btn" onclick="switchTab('incoming')" title="Swap Requests">
+      🔔<span class="badge" id="notifBadge" style="display:none;">0</span>
+    </button>
+    <button class="nav-icon-btn" title="Messages" onclick="switchTab('chat')">
+      💬<span class="badge" id="chatBadge" style="display:none;">0</span>
+    </button>
+    <div class="nav-divider nav-desktop"></div>
+    <a href="profile.html" class="nav-user-pill nav-desktop">
+      <div id="navAvImg"></div><span id="navName"></span>
+    </a>
+    <button class="btn-logout nav-desktop" onclick="confirmLogout()">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/>
+      </svg>Logout
+    </button>
+  </div>
+</nav>
+
+<div class="drawer-overlay" id="drawerOverlay" onclick="closeSidebar()"></div>
+
+<!-- Logout modal -->
+<div id="logoutModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:300;align-items:center;justify-content:center;">
+  <div style="background:#fff;border-radius:16px;padding:28px;max-width:340px;width:90%;box-shadow:0 20px 40px rgba(0,0,0,.2);text-align:center;">
+    <div style="font-size:38px;margin-bottom:10px;">👋</div>
+    <h3 style="font-size:17px;font-weight:800;color:#1e1b4b;margin-bottom:7px;">Sign out?</h3>
+    <p style="font-size:13px;color:#6b7280;margin-bottom:20px;">You'll need to sign in again to access your account.</p>
+    <div style="display:flex;gap:10px;">
+      <button onclick="closeLogoutModal()" style="flex:1;padding:9px;border:1.5px solid #e5e7eb;border-radius:9px;font-size:14px;font-weight:600;cursor:pointer;background:#fff;color:#374151;">Cancel</button>
+      <button onclick="doLogout()" style="flex:1;padding:9px;border:none;border-radius:9px;font-size:14px;font-weight:600;cursor:pointer;background:linear-gradient(135deg,#ef4444,#dc2626);color:#fff;">Sign Out</button>
+    </div>
+  </div>
+</div>
+
+<div class="layout">
+  <!-- Sidebar (also drawer on mobile) -->
+  <div class="sidebar" id="sidebar">
+    <div class="card pmini">
+      <div id="sideAv"></div>
+      <div class="pn" id="sideN"></div>
+      <div class="pe" id="sideE"></div>
+      <div class="pl" id="sideL"></div>
+      <div class="plang" id="sideLang"></div>
+      <div class="pb" id="sideB"></div>
+      <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;justify-content:center;">
+        <a href="profile.html" class="btn btn-ghost btn-sm">✏️ Edit</a>
+        <button class="btn btn-ghost btn-sm" id="shareMyProfile" onclick="shareProfile()">🔗 Share</button>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">💬 Recent Chats</div>
+      <div id="sidePartners"><div class="empty"><p style="font-size:13px;">No chats yet</p></div></div>
+    </div>
+    <!-- Mobile-only nav links -->
+    <div class="card" style="display:none;" id="mobileNavCard">
+      <a href="profile.html" class="pitem">👤 Edit Profile</a>
+      <div class="pitem" onclick="confirmLogout()">🚪 Logout</div>
+    </div>
+  </div>
+
+  <!-- Main -->
+  <div>
+    <div class="card">
+      <div class="tabs">
+        <div class="tab active" id="tab-find"     onclick="switchTab('find')">🔍 Find</div>
+        <div class="tab"        id="tab-incoming" onclick="switchTab('incoming')">📬 Incoming <span id="incBadge"></span></div>
+        <div class="tab"        id="tab-sent"     onclick="switchTab('sent')">📤 Sent</div>
+        <div class="tab"        id="tab-chat"     onclick="switchTab('chat')">💬 Chat</div>
+      </div>
+
+      <!-- Find -->
+      <div id="pane-find">
+        <div class="filter-bar">
+          <div class="filter-label">🔍 Search & Filter</div>
+          <input type="search" id="searchQ" placeholder="Skill, name or language…"
+                 onkeydown="if(event.key==='Enter')doSearch()" style="flex:2;min-width:140px;"/>
+          <input type="text" id="filterLang" placeholder="🗣 Language" list="langFilt" autocomplete="off"/>
+          <datalist id="langFilt">
+            <option>English</option><option>Hindi</option><option>Telugu</option><option>Tamil</option>
+            <option>Kannada</option><option>Malayalam</option><option>Marathi</option><option>Bengali</option>
+            <option>Mandarin</option><option>Spanish</option><option>French</option><option>Arabic</option>
+            <option>Japanese</option><option>Korean</option><option>German</option>
+          </datalist>
+          <input type="text" id="filterLoc" placeholder="📍 Location"/>
+          <button class="btn btn-primary btn-sm" onclick="doSearch()">Search</button>
+          <button class="btn btn-ghost btn-sm" onclick="clearFilters()">✕</button>
+        </div>
+        <div id="searchRes">
+          <div class="empty"><div class="icon">🔍</div><p>Search for a skill, name or language</p></div>
+        </div>
+      </div>
+
+      <!-- Incoming -->
+      <div id="pane-incoming" style="display:none;">
+        <div id="incList"><div class="empty"><div class="icon">⏳</div><p>Loading…</p></div></div>
+      </div>
+
+      <!-- Sent -->
+      <div id="pane-sent" style="display:none;">
+        <div id="sentList"><div class="empty"><div class="icon">⏳</div><p>Loading…</p></div></div>
+      </div>
+
+      <!-- Chat -->
+      <div id="pane-chat" style="display:none;">
+        <div id="chatPicker">
+          <div style="display:flex;gap:8px;margin-bottom:12px;">
+            <input type="search" id="chatSearchQ" placeholder="Find a user to message…"
+                   onkeydown="if(event.key==='Enter')searchChatUser()" style="flex:1;"/>
+            <button class="btn btn-primary btn-sm" onclick="searchChatUser()">Find</button>
+          </div>
+          <div id="chatSearchRes"></div>
+          <div class="card-title" style="margin-top:14px;margin-bottom:8px;">Recent</div>
+          <div id="chatPartners"><div class="empty"><p>No conversations yet</p></div></div>
+        </div>
+        <div class="chat-wrap" id="chatWin" style="display:none;">
+          <div class="chat-hdr">
+            <span class="chat-back" onclick="closeChat()">←</span>
+            <div id="chatWinAv"></div>
+            <div style="flex:1;min-width:0;">
+              <div style="font-weight:700;font-size:15px;display:flex;align-items:center;gap:7px;flex-wrap:wrap;">
+                <span id="chatWinName"></span>
+                <span id="chatWinOnline"></span>
+              </div>
+              <div style="font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" id="chatWinSub"></div>
+            </div>
+            <a id="chatWinProfile" href="#" class="btn btn-ghost btn-sm" target="_blank"
+               title="View profile" style="flex-shrink:0;">👤</a>
+          </div>
+          <div class="chat-msgs" id="chatMsgs"></div>
+          <!-- Typing indicator -->
+          <div class="typing-indicator" id="typingIndicator">
+            <div class="typing-dots"><span></span><span></span><span></span></div>
+            <span id="typingText"></span>
+          </div>
+          <div class="chat-foot">
+            <input type="text" id="chatIn" placeholder="Type a message…"
+                   onkeydown="if(event.key==='Enter')sendMsg()"
+                   oninput="sendTyping()"/>
+            <button class="btn btn-primary btn-sm" onclick="sendMsg()">➤</button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script src="js/api.js"></script>
+<script>
+requireAuth();
+const me = getUser();
+let chatPartnerId = null;
+let typingTimer   = null;
+
+/* ── Sidebar / drawer ────────────────────────────────────────────────────── */
+function toggleSidebar() {
+  const s = document.getElementById('sidebar');
+  const o = document.getElementById('drawerOverlay');
+  const m = document.getElementById('mobileNavCard');
+  s.classList.toggle('drawer-open');
+  o.classList.toggle('show');
+  m.style.display = s.classList.contains('drawer-open') ? 'block' : 'none';
+}
+function closeSidebar() {
+  document.getElementById('sidebar').classList.remove('drawer-open');
+  document.getElementById('drawerOverlay').classList.remove('show');
+  document.getElementById('mobileNavCard').style.display = 'none';
+}
+
+/* ── Logout ──────────────────────────────────────────────────────────────── */
+function confirmLogout() { document.getElementById('logoutModal').style.display='flex'; closeSidebar(); }
+function closeLogoutModal(){ document.getElementById('logoutModal').style.display='none'; }
+function doLogout(){ sessionStorage.removeItem('ss_tab_token'); sessionStorage.removeItem('ss_tab_user'); window.location.href='login.html'; }
+document.getElementById('logoutModal').addEventListener('click',function(e){if(e.target===this)closeLogoutModal();});
+
+/* ── Boot ────────────────────────────────────────────────────────────────── */
+function boot() {
+  document.getElementById('navAvImg').innerHTML  = avatarHtml(me, 24);
+  document.getElementById('navName').textContent = me?.name?.split(' ')[0] || '';
+  document.getElementById('sideAv').innerHTML    = avatarHtml(me, 68);
+  document.getElementById('sideN').textContent   = me?.name     || '';
+  document.getElementById('sideE').textContent   = me?.email    || '';
+  document.getElementById('sideL').textContent   = me?.location ? '📍 '+me.location : '';
+  document.getElementById('sideLang').textContent= me?.languages? '🗣 '+me.languages : '';
+  document.getElementById('sideB').textContent   = me?.bio      || '';
+
+  loadIncoming(); loadSidePartners(); refreshNotifBadge();
+
+  // Check for hash-based chat open (from public profile page)
+  const hash = window.location.hash;
+  if (hash.startsWith('#chat-')) {
+    const parts = hash.slice(6).split('-');
+    const pid   = parts[0];
+    const pname = decodeURIComponent(parts.slice(1).join('-'));
+    if (pid) setTimeout(() => openChat(pid, pname), 500);
+  }
+
+  connectSSE(
+    d => { toast('🔔 New swap request from '+d.from); refreshNotifBadge(); loadIncoming(); },
+    d => { toast('Swap '+d.status.toLowerCase()+': '+d.skillOffered); loadIncoming(); },
+    d => {
+      bumpChatBadge();
+      if (chatPartnerId && String(chatPartnerId)===String(d.fromId)) {
+        appendMsg({sender:{id:d.fromId},content:d.content,createdAt:d.time}, false);
+      } else { toast('💬 Message from '+d.from); }
+      loadSidePartners();
+    },
+    // typing handler
+    d => {
+      if (chatPartnerId && String(chatPartnerId)===String(d.fromId)) showTyping(d.from);
+    }
+  );
+}
+
+/* ── Share my profile ────────────────────────────────────────────────────── */
+function shareProfile() {
+  const url = window.location.origin + '/public-profile.html?id=' + me.id;
+  navigator.clipboard.writeText(url).then(() => {
+    toast('🔗 Profile link copied!');
+  }).catch(() => { window.open(url,'_blank'); });
+}
+
+/* ── Typing indicator ────────────────────────────────────────────────────── */
+let typingDebounce = null;
+function sendTyping() {
+  if (!chatPartnerId) return;
+  clearTimeout(typingDebounce);
+  typingDebounce = setTimeout(() => {
+    api('POST', '/auth/typing?receiverId=' + chatPartnerId).catch(()=>{});
+  }, 400);
+}
+
+let typingTimeout = null;
+function showTyping(name) {
+  const el   = document.getElementById('typingIndicator');
+  const txt  = document.getElementById('typingText');
+  txt.textContent = name + ' is typing…';
+  el.classList.add('show');
+  clearTimeout(typingTimeout);
+  typingTimeout = setTimeout(() => el.classList.remove('show'), 3000);
+}
+
+/* ── Tabs ────────────────────────────────────────────────────────────────── */
+function switchTab(name) {
+  ['find','incoming','sent','chat'].forEach(t => {
+    document.getElementById('pane-'+t).style.display = t===name?'block':'none';
+    document.getElementById('tab-'+t).classList.toggle('active', t===name);
+  });
+  if(name==='incoming') loadIncoming();
+  if(name==='sent')     loadSent();
+  if(name==='chat')     loadChatPartners();
+  closeSidebar();
+}
+
+/* ── Search ──────────────────────────────────────────────────────────────── */
+function clearFilters() {
+  ['searchQ','filterLang','filterLoc'].forEach(id => document.getElementById(id).value='');
+  document.getElementById('searchRes').innerHTML=
+    '<div class="empty"><div class="icon">🔍</div><p>Search for a skill, name or language</p></div>';
+}
+
+async function doSearch() {
+  const q    = document.getElementById('searchQ').value.trim();
+  const lang = document.getElementById('filterLang').value.trim();
+  const loc  = document.getElementById('filterLoc').value.trim();
+  if (!q && !lang && !loc) { toast('Enter something to search','warn'); return; }
+  const el = document.getElementById('searchRes');
+  el.innerHTML = skel(3);
+  try {
+    let url = '/auth/search?q='+encodeURIComponent(q||'a');
+    if (lang) url += '&language='+encodeURIComponent(lang);
+    if (loc)  url += '&location='+encodeURIComponent(loc);
+    const users  = await GET(url);
+    const others = users.filter(u=>String(u.id)!==String(me.id));
+    if (!others.length) {
+      el.innerHTML='<div class="empty"><div class="icon">😕</div><p>No users found</p></div>'; return;
+    }
+    let onlineMap = {};
+    try { onlineMap = await GET('/auth/online-status?ids='+others.map(u=>u.id).join(',')); } catch{}
+
+    el.innerHTML = others.map(u => {
+      const isOn = onlineMap[u.id]||false;
+      return `
+      <div class="ucard">
+        <div class="av-online">${avatarHtml(u,44)}<div class="dot ${isOn?'on':'off'}"></div></div>
+        <div class="uinfo">
+          <div style="display:flex;align-items:center;gap:7px;flex-wrap:wrap;">
+            <div class="uname">${escHtml(u.name)}</div>
+            <span class="online-badge ${isOn?'on':'off'}">
+              <span class="online-dot ${isOn?'on':'off'}"></span>${isOn?'Online':'Offline'}
+            </span>
+          </div>
+          <div class="umeta">${u.location?'📍 '+escHtml(u.location)+' · ':''}Has: <b>${escHtml(u.skillsHave||'—')}</b> · Wants: <b>${escHtml(u.skillsWant||'—')}</b></div>
+          ${u.languages?`<div class="ulang">🗣 ${escHtml(u.languages)}</div>`:''}
+          ${u.bio?`<div class="ubio">${escHtml(u.bio)}</div>`:''}
+          <div class="swap-row">
+            <input id="off_${u.id}" placeholder="Skill you offer"/>
+            <input id="wan_${u.id}" placeholder="Skill you want"/>
+            <button class="btn btn-primary btn-sm" onclick="sendSwap(${u.id},this)">🤝 Swap</button>
+          </div>
+          <div class="uactions">
+            <button class="btn btn-ghost btn-sm"
+                    onclick="openChat(${u.id},'${escHtml((u.name||'').replace(/'/g,"\\'"))}')">💬 Chat</button>
+            <a href="public-profile.html?id=${u.id}" target="_blank" class="btn btn-ghost btn-sm">👤 Profile</a>
+          </div>
+        </div>
+      </div>`;
+    }).join('');
+  } catch(e) {
+    el.innerHTML=`<div class="empty"><div class="icon">⚠️</div><p>${escHtml(e.message)}</p></div>`;
+  }
+}
+
+/* ── Swap ────────────────────────────────────────────────────────────────── */
+async function sendSwap(rid, btn) {
+  const off=document.getElementById('off_'+rid).value.trim();
+  const wan=document.getElementById('wan_'+rid).value.trim();
+  if(!off||!wan){toast('Fill in both skill fields','warn');return;}
+  btn.disabled=true; btn.textContent='…';
+  try {
+    await api('POST',`/request/send?receiverId=${rid}&skillOffered=${encodeURIComponent(off)}&skillWanted=${encodeURIComponent(wan)}`);
+    btn.textContent='✅ Sent!'; toast('Swap request sent!');
+  } catch(e){toast(e.message,'error');btn.disabled=false;btn.textContent='🤝 Swap';}
+}
+
+/* ── Incoming ────────────────────────────────────────────────────────────── */
+async function loadIncoming() {
+  const el=document.getElementById('incList');
+  try {
+    const list=await GET('/request/incoming');
+    const pending=list.filter(r=>r.status==='PENDING').length;
+    document.getElementById('incBadge').textContent=pending?` (${pending})`:'';
+    if(!list.length){el.innerHTML='<div class="empty"><div class="icon">📭</div><p>No incoming requests yet</p></div>';return;}
+    el.innerHTML=list.map(r=>`
+      <div class="rcard" id="r_${r.id}">
+        <div class="rtop">
+          <div>
+            <div class="rtitle">${avatarHtml(r.sender,26)} ${escHtml(r.sender?.name||'?')}</div>
+            <div class="rsub">Offering <b>${escHtml(r.skillOffered)}</b> · wants <b>${escHtml(r.skillWanted)}</b> · <span style="color:var(--muted)">${timeAgo(r.createdAt)}</span></div>
+          </div>
+          <span class="status status-${r.status.toLowerCase()}">${r.status}</span>
+        </div>
+        <div class="racts">
+          ${r.status==='PENDING'?`
+            <button class="btn btn-success btn-sm" onclick="setStatus(${r.id},'ACCEPTED',${r.sender.id},'${escHtml((r.sender?.name||'').replace(/'/g,"\\'"))}')">✅ Accept</button>
+            <button class="btn btn-danger  btn-sm" onclick="setStatus(${r.id},'REJECTED',null,null)">❌ Reject</button>`:''}
+          <button class="btn btn-ghost btn-sm"
+                  onclick="openChat(${r.sender.id},'${escHtml((r.sender?.name||'').replace(/'/g,"\\'"))}')">💬 Chat</button>
+          <a href="public-profile.html?id=${r.sender.id}" target="_blank" class="btn btn-ghost btn-sm">👤</a>
+        </div>
+      </div>`).join('');
+  } catch{el.innerHTML='<div class="empty"><p>Failed to load</p></div>';}
+}
+
+async function setStatus(id, status, senderId, senderName) {
+  try {
+    await api('PUT',`/request/status?requestId=${id}&status=${status}`);
+    if (status==='ACCEPTED' && senderId) {
+      const card=document.getElementById('r_'+id);
+      if(card){
+        card.querySelector('.racts').innerHTML=`
+          <span class="status status-accepted">ACCEPTED</span>
+          <button class="btn btn-primary btn-sm"
+                  onclick="openChat(${senderId},'${escHtml((senderName||'').replace(/'/g,"\\'"))}')">
+            💬 Chat with ${escHtml(senderName||'User')}
+          </button>`;
+        const s=card.querySelector('.rtop .status'); if(s)s.remove();
+      }
+      toast('✅ Accepted! Chat with '+senderName+' now');
+    } else { toast('❌ Request rejected'); }
+    refreshNotifBadge();
+    setTimeout(loadIncoming, 1500);
+  } catch(e){toast(e.message,'error');}
+}
+
+/* ── Sent ────────────────────────────────────────────────────────────────── */
+async function loadSent() {
+  const el=document.getElementById('sentList');
+  try {
+    const list=await GET('/request/sent');
+    if(!list.length){el.innerHTML='<div class="empty"><div class="icon">📭</div><p>No sent requests yet</p></div>';return;}
+    el.innerHTML=list.map(r=>`
+      <div class="rcard">
+        <div class="rtop">
+          <div>
+            <div class="rtitle">${avatarHtml(r.receiver,26)} ${escHtml(r.receiver?.name||'?')}</div>
+            <div class="rsub">Offering <b>${escHtml(r.skillOffered)}</b> · wants <b>${escHtml(r.skillWanted)}</b> · <span style="color:var(--muted)">${timeAgo(r.createdAt)}</span></div>
+          </div>
+          <span class="status status-${r.status.toLowerCase()}">${r.status}</span>
+        </div>
+        ${r.status==='ACCEPTED'?`
+        <div class="racts">
+          <button class="btn btn-primary btn-sm"
+                  onclick="openChat(${r.receiver.id},'${escHtml((r.receiver?.name||'').replace(/'/g,"\\'"))}')">
+            💬 Chat with ${escHtml(r.receiver?.name||'User')}
+          </button>
+          <a href="public-profile.html?id=${r.receiver.id}" target="_blank" class="btn btn-ghost btn-sm">👤 Profile</a>
+        </div>`:''}
+      </div>`).join('');
+  } catch{el.innerHTML='<div class="empty"><p>Failed to load</p></div>';}
+}
+
+/* ── Chat partners ───────────────────────────────────────────────────────── */
+async function loadChatPartners(){renderPartners(await safeFetch(),'chatPartners');}
+async function loadSidePartners() {renderPartners(await safeFetch(),'sidePartners');}
+async function safeFetch(){try{return await GET('/chat/partners');}catch{return[];}}
+function renderPartners(partners,elId){
+  const el=document.getElementById(elId);
+  if(!partners.length){el.innerHTML='<div class="empty"><p style="font-size:13px;">No conversations yet</p></div>';return;}
+  el.innerHTML=partners.map(p=>`
+    <div class="pitem" onclick="openChat(${p.id},'${escHtml((p.name||'').replace(/'/g,"\\'"))}')">
+      <div class="av-online">${avatarHtml(p,34)}<div class="dot ${p.online?'on':'off'}"></div></div>
+      <div><div class="pname2">${escHtml(p.name)}</div>
+           <div class="psub">${p.languages?'🗣 '+escHtml(p.languages):escHtml(p.skillsHave||'')}</div></div>
+    </div>`).join('');
+}
+
+async function searchChatUser(){
+  const q=document.getElementById('chatSearchQ').value.trim(); if(!q)return;
+  try{
+    const users=await GET('/auth/search?q='+encodeURIComponent(q));
+    const others=users.filter(u=>String(u.id)!==String(me.id));
+    const el=document.getElementById('chatSearchRes');
+    if(!others.length){el.innerHTML='<div class="empty"><p>No users found</p></div>';return;}
+    el.innerHTML=others.map(p=>`
+      <div class="pitem" onclick="openChat(${p.id},'${escHtml((p.name||'').replace(/'/g,"\\'"))}')">
+        <div class="av-online">${avatarHtml(p,34)}<div class="dot ${p.online?'on':'off'}"></div></div>
+        <div><div class="pname2">${escHtml(p.name)}</div>
+             <div class="psub">${p.languages?'🗣 '+escHtml(p.languages):escHtml(p.skillsHave||'')}</div></div>
+      </div>`).join('');
+  }catch{}
+}
+
+/* ── Open / close chat ───────────────────────────────────────────────────── */
+async function openChat(pid, pname) {
+  chatPartnerId = pid;
+  switchTab('chat');
+  document.getElementById('chatPicker').style.display='none';
+  document.getElementById('chatWin').style.display='flex';
+  document.getElementById('chatWinName').textContent=pname;
+  document.getElementById('chatWinOnline').innerHTML='';
+  document.getElementById('chatWinSub').textContent='';
+  document.getElementById('chatWinAv').innerHTML='';
+  document.getElementById('chatWinProfile').href='public-profile.html?id='+pid;
+  document.getElementById('typingIndicator').classList.remove('show');
+  document.getElementById('chatMsgs').innerHTML=
+    '<div class="empty"><div class="icon">⏳</div><p>Loading…</p></div>';
+  try{
+    const p=await GET('/auth/user/'+pid);
+    document.getElementById('chatWinAv').innerHTML=avatarHtml(p,36);
+    const isOn=p.online||false;
+    document.getElementById('chatWinOnline').innerHTML=
+      `<span class="online-badge ${isOn?'on':'off'}"><span class="online-dot ${isOn?'on':'off'}"></span>${isOn?'Online':'Offline'}</span>`;
+    const sub=[p.skillsHave,p.languages?'🗣 '+p.languages:''].filter(Boolean).join(' · ');
+    document.getElementById('chatWinSub').textContent=sub;
+  }catch{}
+  await loadMsgs();
+  document.getElementById('chatIn').focus();
+  chatUnread=0;
+  const b=document.getElementById('chatBadge');
+  b.style.display='none'; b.textContent='0';
+}
+
+function closeChat(){
+  chatPartnerId=null;
+  document.getElementById('chatWin').style.display='none';
+  document.getElementById('chatPicker').style.display='block';
+  document.getElementById('typingIndicator').classList.remove('show');
+  loadChatPartners();
+}
+
+async function loadMsgs(){
+  const el=document.getElementById('chatMsgs');
+  try{
+    const msgs=await GET('/chat/conversation/'+chatPartnerId);
+    el.innerHTML='';
+    if(!msgs.length){el.innerHTML='<div class="empty"><p>No messages yet — say hi! 👋</p></div>';return;}
+    msgs.forEach(m=>appendMsg(m,String(m.sender?.id)===String(me.id)));
+    el.scrollTop=el.scrollHeight;
+  }catch{el.innerHTML='<div class="empty"><p>Failed to load messages</p></div>';}
+}
+
+function appendMsg(m, isMine){
+  const el=document.getElementById('chatMsgs');
+  const emp=el.querySelector('.empty'); if(emp)emp.remove();
+  const div=document.createElement('div');
+  div.className='msg '+(isMine?'mine':'theirs');
+  div.innerHTML=escHtml(m.content)+`<div class="msg-time">${timeAgo(m.createdAt)}</div>`;
+  el.appendChild(div); el.scrollTop=el.scrollHeight;
+}
+
+async function sendMsg(){
+  const input=document.getElementById('chatIn');
+  const content=input.value.trim();
+  if(!content||!chatPartnerId)return;
+  input.value='';
+  try{
+    const saved=await POST('/chat/send?receiverId='+chatPartnerId,{content});
+    appendMsg(saved,true);
+  }catch(e){toast(e.message,'error');input.value=content;}
+}
+
+/* ── Badges ──────────────────────────────────────────────────────────────── */
+async function refreshNotifBadge(){
+  try{
+    const n=await GET('/request/pending-count');
+    const b=document.getElementById('notifBadge');
+    b.style.display=n>0?'flex':'none'; b.textContent=n;
+  }catch{}
+}
+let chatUnread=0;
+function bumpChatBadge(){
+  chatUnread++;
+  const b=document.getElementById('chatBadge');
+  b.style.display='flex'; b.textContent=chatUnread;
+}
+
+/* ── Skeletons ───────────────────────────────────────────────────────────── */
+function skel(n){
+  return Array(n).fill(`<div class="sk">
+    <div class="skeleton" style="width:42px;height:42px;border-radius:10px;flex-shrink:0;"></div>
+    <div style="flex:1;"><div class="skeleton" style="height:12px;width:55%;margin-bottom:7px;"></div>
+    <div class="skeleton" style="height:11px;width:85%;"></div></div></div>`).join('');
+}
+
+// Update connectSSE in api.js to support typing event
+const _origConnect = connectSSE;
+function connectSSE(onSwap, onUpdate, onChat, onTyping) {
+  const token=getToken(); if(!token)return null;
+  const es=new EventSource('/notifications/subscribe?token='+encodeURIComponent(token));
+  es.addEventListener('swap_request', e=>onSwap?.(JSON.parse(e.data)));
+  es.addEventListener('swap_update',  e=>onUpdate?.(JSON.parse(e.data)));
+  es.addEventListener('chat_message', e=>onChat?.(JSON.parse(e.data)));
+  es.addEventListener('typing',       e=>onTyping?.(JSON.parse(e.data)));
+  es.onerror=()=>es.close();
+  return es;
+}
+
+boot();
+</script>
+</body>
+</html>

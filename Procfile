@@ -1,0 +1,1 @@
+web: java -jar target/skillswap-3.0.0.jar

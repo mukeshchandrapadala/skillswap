@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>SkillSwap — Register</title>
+  <link rel="stylesheet" href="css/app.css"/>
+  <datalist id="locList">
+    <option>Hyderabad, India</option><option>Mumbai, India</option><option>Delhi, India</option>
+    <option>Bengaluru, India</option><option>Chennai, India</option><option>Kolkata, India</option>
+    <option>Pune, India</option><option>Ahmedabad, India</option><option>Jaipur, India</option>
+    <option>New York, USA</option><option>San Francisco, USA</option><option>London, UK</option>
+    <option>Toronto, Canada</option><option>Sydney, Australia</option><option>Berlin, Germany</option>
+    <option>Paris, France</option><option>Tokyo, Japan</option><option>Singapore</option><option>Dubai, UAE</option>
+  </datalist>
+  <style>
+    body{display:flex;align-items:center;justify-content:center;min-height:100vh;
+         background:linear-gradient(135deg,#7c3aed,#4c1d95);padding:24px 20px;}
+    .box{background:#fff;border-radius:20px;box-shadow:0 25px 50px rgba(0,0,0,.25);
+         padding:44px 40px;width:100%;max-width:560px;}
+    .logo{text-align:center;margin-bottom:28px;}
+    .logo-icon{width:60px;height:60px;background:linear-gradient(135deg,#7c3aed,#4c1d95);
+               border-radius:16px;display:inline-flex;align-items:center;justify-content:center;
+               font-size:30px;margin-bottom:12px;}
+    .logo h1{font-size:26px;font-weight:800;color:#1e1b4b;}
+    .logo p{color:#6b7280;font-size:14px;margin-top:4px;}
+    .row2{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+    .sec-lbl{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;
+             color:#9ca3af;margin:18px 0 10px;display:flex;align-items:center;gap:8px;}
+    .sec-lbl::before,.sec-lbl::after{content:'';flex:1;height:1px;background:#e5e7eb;}
+    .foot{text-align:center;margin-top:22px;font-size:14px;color:#6b7280;}
+    .foot a{color:#7c3aed;font-weight:700;text-decoration:none;}
+    .pwd-wrap{position:relative;}
+    .pwd-wrap input{padding-right:44px;}
+    .pwd-toggle{position:absolute;right:12px;top:50%;transform:translateY(-50%);
+                background:none;border:none;cursor:pointer;color:#9ca3af;font-size:18px;}
+    .str-bar{height:4px;border-radius:99px;margin-top:6px;background:#e5e7eb;overflow:hidden;}
+    .str-inner{height:100%;border-radius:99px;width:0;transition:width .3s,background .3s;}
+    .str-hint{font-size:11px;color:#9ca3af;margin-top:4px;}
+    .tag-prev{display:flex;flex-wrap:wrap;gap:5px;margin-top:7px;}
+    .tag-prev span{padding:3px 10px;border-radius:99px;font-size:11px;font-weight:600;}
+    /* Multi-language selector */
+    .lang-selector{border:1.5px solid #e5e7eb;border-radius:10px;padding:8px;background:#fafafa;}
+    .lang-selector:focus-within{border-color:#7c3aed;background:#fff;box-shadow:0 0 0 3px rgba(124,58,237,.12);}
+    .lang-tags-input{display:flex;flex-wrap:wrap;gap:6px;align-items:center;}
+    .lang-chip{display:flex;align-items:center;gap:4px;padding:3px 10px;
+               background:#ede9fe;color:#6d28d9;border-radius:99px;font-size:12px;font-weight:600;}
+    .lang-chip button{background:none;border:none;cursor:pointer;color:#6d28d9;font-size:14px;line-height:1;padding:0;}
+    .lang-text-input{border:none;outline:none;background:transparent;font-size:14px;
+                     min-width:120px;flex:1;padding:2px 4px;font-family:inherit;}
+    .lang-dropdown{position:absolute;left:0;right:0;top:100%;margin-top:4px;background:#fff;
+                   border:1.5px solid #e5e7eb;border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.1);
+                   z-index:100;max-height:200px;overflow-y:auto;display:none;}
+    .lang-dropdown.show{display:block;}
+    .lang-opt{padding:10px 14px;cursor:pointer;font-size:14px;transition:background .15s;}
+    .lang-opt:hover,.lang-opt.active{background:#ede9fe;color:#6d28d9;}
+    .lang-wrap{position:relative;}
+    @media(max-width:520px){.row2{grid-template-columns:1fr;}.box{padding:32px 20px;}}
+  </style>
+</head>
+<body>
+<div class="box">
+  <div class="logo">
+    <div class="logo-icon">🔄</div>
+    <h1>SkillSwap</h1>
+    <p>Create your account</p>
+  </div>
+  <div class="alert" id="alert"></div>
+  <form id="form" novalidate>
+
+    <div class="sec-lbl">Account</div>
+    <div class="input-group">
+      <label>Full Name</label>
+      <input type="text" id="name" placeholder="Jane Smith" autocomplete="name"/>
+    </div>
+    <div class="input-group">
+      <label>Email Address</label>
+      <input type="email" id="email" placeholder="you@example.com" autocomplete="email"/>
+    </div>
+    <div class="input-group">
+      <label>Password</label>
+      <div class="pwd-wrap">
+        <input type="password" id="password" placeholder="Min 6 characters"
+               autocomplete="new-password" oninput="checkStr(this.value)"/>
+        <button type="button" class="pwd-toggle" onclick="togglePwd()">👁</button>
+      </div>
+      <div class="str-bar"><div class="str-inner" id="strBar"></div></div>
+      <div class="str-hint" id="strHint"></div>
+    </div>
+
+    <div class="sec-lbl">Skills</div>
+    <div class="row2">
+      <div class="input-group">
+        <label>Skills I Have</label>
+        <input type="text" id="skillsHave" placeholder="Python, Design…"
+               oninput="prevTags('skillsHave','hPrev','tag-have')"/>
+        <div class="tag-prev" id="hPrev"></div>
+      </div>
+      <div class="input-group">
+        <label>Skills I Want</label>
+        <input type="text" id="skillsWant" placeholder="React, Finance…"
+               oninput="prevTags('skillsWant','wPrev','tag-want')"/>
+        <div class="tag-prev" id="wPrev"></div>
+      </div>
+    </div>
+
+    <div class="sec-lbl">Languages & Location</div>
+
+    <!-- Multi-language selector -->
+    <div class="input-group">
+      <label>Languages I Speak</label>
+      <div class="lang-wrap">
+        <div class="lang-selector" onclick="document.getElementById('langTextIn').focus()">
+          <div class="lang-tags-input" id="langTagsInput">
+            <input type="text" id="langTextIn" class="lang-text-input"
+                   placeholder="Type a language…" autocomplete="off"
+                   oninput="filterLangs(this.value)"
+                   onkeydown="handleLangKey(event)"
+                   onfocus="showDrop()" onblur="setTimeout(hideDrop,200)"/>
+          </div>
+        </div>
+        <div class="lang-dropdown" id="langDrop"></div>
+      </div>
+    </div>
+
+    <div class="row2">
+      <div class="input-group">
+        <label>Location</label>
+        <input type="text" id="location" placeholder="Hyderabad, India"
+               list="locList" autocomplete="off"/>
+      </div>
+      <div class="input-group">
+        <label>Bio <span style="font-weight:400;color:#9ca3af">(optional)</span></label>
+        <input type="text" id="bio" placeholder="A short intro…"/>
+      </div>
+    </div>
+
+    <button type="submit" class="btn btn-primary btn-full" id="btn" style="margin-top:8px;">
+      Create Account
+    </button>
+  </form>
+  <div class="foot">Already have an account? <a href="login.html">Sign in →</a></div>
+</div>
+
+<script src="js/api.js"></script>
+<script>
+if (getToken()) location.href = 'dashboard.html';
+
+// ── Language multi-select ─────────────────────────────────────────────────
+const ALL_LANGS = [
+  'English','Hindi','Telugu','Tamil','Kannada','Malayalam','Marathi','Bengali',
+  'Gujarati','Punjabi','Urdu','Odia','Mandarin','Spanish','French','Arabic',
+  'Portuguese','Russian','Japanese','Korean','German','Italian','Turkish',
+  'Dutch','Polish','Swedish','Norwegian','Danish','Finnish','Greek',
+  'Hebrew','Indonesian','Malay','Thai','Vietnamese','Swahili'
+];
+let selectedLangs = [];
+let dropActive = 0;
+
+function renderLangChips() {
+  const wrap = document.getElementById('langTagsInput');
+  // Remove existing chips
+  wrap.querySelectorAll('.lang-chip').forEach(c => c.remove());
+  const inp = document.getElementById('langTextIn');
+  selectedLangs.forEach((l, i) => {
+    const chip = document.createElement('div');
+    chip.className = 'lang-chip';
+    chip.innerHTML = `🗣 ${escHtml(l)} <button type="button" onclick="removeLang(${i})">×</button>`;
+    wrap.insertBefore(chip, inp);
+  });
+}
+
+function removeLang(i) { selectedLangs.splice(i,1); renderLangChips(); }
+
+function addLang(lang) {
+  if (!lang) return;
+  const trimmed = lang.trim();
+  if (!trimmed) return;
+  if (!selectedLangs.map(l=>l.toLowerCase()).includes(trimmed.toLowerCase())) {
+    selectedLangs.push(trimmed);
+    renderLangChips();
+  }
+  document.getElementById('langTextIn').value = '';
+  filterLangs('');
+}
+
+function filterLangs(q) {
+  const drop = document.getElementById('langDrop');
+  const matches = ALL_LANGS.filter(l =>
+    l.toLowerCase().includes(q.toLowerCase()) &&
+    !selectedLangs.map(x=>x.toLowerCase()).includes(l.toLowerCase())
+  ).slice(0, 8);
+  if (!matches.length) { drop.classList.remove('show'); return; }
+  drop.innerHTML = matches.map((l,i) =>
+    `<div class="lang-opt" onmousedown="addLang('${l}')">${escHtml(l)}</div>`).join('');
+  drop.classList.add('show');
+}
+
+function showDrop() { filterLangs(document.getElementById('langTextIn').value); }
+function hideDrop()  { document.getElementById('langDrop').classList.remove('show'); }
+
+function handleLangKey(e) {
+  if (e.key === 'Enter') { e.preventDefault(); addLang(document.getElementById('langTextIn').value); }
+  if (e.key === ',')     { e.preventDefault(); addLang(document.getElementById('langTextIn').value); }
+  if (e.key === 'Backspace' && !document.getElementById('langTextIn').value && selectedLangs.length) {
+    selectedLangs.pop(); renderLangChips();
+  }
+}
+
+// ── Helpers ───────────────────────────────────────────────────────────────
+function togglePwd() {
+  const inp = document.getElementById('password');
+  inp.type = inp.type === 'password' ? 'text' : 'password';
+}
+
+function checkStr(val) {
+  const bar = document.getElementById('strBar'), hint = document.getElementById('strHint');
+  if (!val) { bar.style.width='0'; hint.textContent=''; return; }
+  let s=0;
+  if(val.length>=6)s++; if(val.length>=10)s++; if(/[A-Z]/.test(val))s++;
+  if(/[0-9]/.test(val))s++; if(/[^A-Za-z0-9]/.test(val))s++;
+  const lvl=[{w:'10%',c:'#ef4444',t:'Too short'},{w:'25%',c:'#ef4444',t:'Weak'},
+             {w:'50%',c:'#f59e0b',t:'Fair'},{w:'75%',c:'#10b981',t:'Good'},{w:'100%',c:'#059669',t:'Strong 💪'}];
+  const l=lvl[Math.min(s,4)];
+  bar.style.width=l.w; bar.style.background=l.c;
+  hint.textContent=l.t; hint.style.color=l.c;
+}
+
+function prevTags(id, prevId, cls) {
+  const tags = document.getElementById(id).value.split(',').map(s=>s.trim()).filter(Boolean);
+  document.getElementById(prevId).innerHTML =
+    tags.map(t=>`<span class="${cls}">${escHtml(t)}</span>`).join('');
+}
+
+function escHtml(s){ return String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+// ── Form submit ───────────────────────────────────────────────────────────
+const alertEl = document.getElementById('alert');
+const btn     = document.getElementById('btn');
+
+function setAlert(msg,type){ alertEl.textContent=msg; alertEl.className='alert '+type; alertEl.style.display='block'; }
+function setLoad(on){ btn.disabled=on; btn.innerHTML=on?'<span class="spinner"></span>Creating…':'Create Account'; }
+
+document.getElementById('form').addEventListener('submit', async e => {
+  e.preventDefault(); alertEl.style.display='none';
+  const name      = document.getElementById('name').value.trim();
+  const email     = document.getElementById('email').value.trim();
+  const password  = document.getElementById('password').value;
+  const skillsHave= document.getElementById('skillsHave').value.trim();
+  const skillsWant= document.getElementById('skillsWant').value.trim();
+  const languages = selectedLangs.join(', ');
+  const location  = document.getElementById('location').value.trim();
+  const bio       = document.getElementById('bio').value.trim();
+
+  if (!name)           { setAlert('Please enter your full name.','error'); return; }
+  if (!email)          { setAlert('Please enter your email address.','error'); return; }
+  if (!password)       { setAlert('Please enter a password.','error'); return; }
+  if (password.length<6){ setAlert('Password must be at least 6 characters.','error'); return; }
+
+  setLoad(true);
+  try {
+    const res  = await fetch('/auth/register',{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({name,email,password,skillsHave,skillsWant,languages,bio,location})
+    });
+    const json = await res.json();
+    if(!res.ok||!json.success){ setAlert(json.message||'Registration failed.','error'); return; }
+    setAlert('✅ Account created! Taking you to login…','success');
+    // Fixed: always redirect after success
+    setTimeout(() => { window.location.href='login.html'; }, 1500);
+  } catch { setAlert('Network error — is the server running?','error'); }
+  finally   { setLoad(false); }
+});
+</script>
+</body>
+</html>
