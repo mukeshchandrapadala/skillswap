@@ -583,7 +583,7 @@ function appendMsg(m, isMine){
   const emp=el.querySelector('.empty'); if(emp)emp.remove();
   const div=document.createElement('div');
   div.className='msg '+(isMine?'mine':'theirs');
-  div.innerHTML=escHtml(m.content)+`<div class="msg-time">${timeAgo(m.createdAt)}</div>`;
+  div.innerHTML = escHtml(m.content) + `<div class="msg-time" data-time="${m.createdAt}">${timeAgo(m.createdAt)}</div>`;
   el.appendChild(div); el.scrollTop=el.scrollHeight;
 }
 
@@ -633,8 +633,32 @@ function connectSSE(onSwap, onUpdate, onChat, onTyping) {
   es.onerror=()=>es.close();
   return es;
 }
+function timeAgo(timestamp) {
+  if (!timestamp) return "Just now";
 
+  const now = new Date();
+  const msgTime = new Date(timestamp);
+
+  if (isNaN(msgTime)) return "Just now";
+
+  const diff = Math.floor((now - msgTime) / 1000);
+
+  if (diff < 10) return "Just now";
+  if (diff < 60) return diff + " sec ago";
+  if (diff < 3600) return Math.floor(diff / 60) + " min ago";
+  if (diff < 86400) return Math.floor(diff / 3600) + " hr ago";
+
+  return Math.floor(diff / 86400) + " days ago"; }
+  setInterval(() => {
+  document.querySelectorAll(".msg-time").forEach(el => {
+    const ts = el.getAttribute("data-time");
+    if (ts) {
+      el.innerText = timeAgo(ts);
+    }
+  });
+}, 60000); // updates every 1 minute
 boot();
 </script>
+
 </body>
 </html>
