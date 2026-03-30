@@ -37,5 +37,5 @@ public class ChatMessage {
     private boolean read = false;
 
     @CreationTimestamp
-    private Instant createdAt;
+    private java.time.Instant createdAt;
 }

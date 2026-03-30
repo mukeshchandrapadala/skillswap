@@ -97,6 +97,9 @@
   </div>
   <div class="nav-right" id="navRight">
     <!-- These are desktop-visible; on mobile they go into hamburger menu via JS -->
+     <button class="nav-icon-btn" onclick="openAiPanel()" title="AI Assistant">
+      🤖
+     </button>
     <button class="nav-icon-btn" onclick="switchTab('incoming')" title="Swap Requests">
       🔔<span class="badge" id="notifBadge" style="display:none;">0</span>
     </button>
@@ -164,6 +167,7 @@
         <div class="tab"        id="tab-incoming" onclick="switchTab('incoming')">📬 Incoming <span id="incBadge"></span></div>
         <div class="tab"        id="tab-sent"     onclick="switchTab('sent')">📤 Sent</div>
         <div class="tab"        id="tab-chat"     onclick="switchTab('chat')">💬 Chat</div>
+        <div class="tab" id="tab-ai" onclick="switchTab('ai')">🤖 AI</div>
       </div>
 
       <!-- Find -->
@@ -235,6 +239,19 @@
                    onkeydown="if(event.key==='Enter')sendMsg()"
                    oninput="sendTyping()"/>
             <button class="btn btn-primary btn-sm" onclick="sendMsg()">➤</button>
+          </div>
+          
+          </div>
+        </div>
+      </div>
+      <!-- AI -->
+       <div id="pane-ai" style="display:none;">
+        <div style="display:flex;flex-direction:column;height:400px;">
+          <div id="aiMsgs" style="flex:1;overflow-y:auto;padding:10px;"></div>
+          <div style="display:flex;gap:8px;margin-top:10px;">
+            <input type="text" id="aiInput" placeholder="Ask AI anything..."
+            onkeydown="if(event.key==='Enter')sendAiMsg()" style="flex:1;"/>
+            <button class="btn btn-primary btn-sm" onclick="sendAiMsg()">➤</button>
           </div>
         </div>
       </div>
@@ -340,14 +357,30 @@ function showTyping(name) {
 
 /* ── Tabs ────────────────────────────────────────────────────────────────── */
 function switchTab(name) {
-  ['find','incoming','sent','chat'].forEach(t => {
-    document.getElementById('pane-'+t).style.display = t===name?'block':'none';
-    document.getElementById('tab-'+t).classList.toggle('active', t===name);
+  ['find','incoming','sent','chat','ai'].forEach(t => {
+    const pane = document.getElementById('pane-' + t);
+    if (pane) pane.style.display = (t === name ? 'block' : 'none');
+
+    const tab = document.getElementById('tab-' + t);
+    if (tab) tab.classList.toggle('active', t === name);
   });
-  if(name==='incoming') loadIncoming();
-  if(name==='sent')     loadSent();
-  if(name==='chat')     loadChatPartners();
+
+  // 👇 SPECIAL FIX FOR CHAT + AI
+  if(name === 'chat'){
+    document.getElementById('chatPicker').style.display = 'block';
+    document.getElementById('chatWin').style.display = 'none';
+  }
+
+  if(name === 'ai'){
+    document.getElementById('pane-ai').style.display = 'block';
+  }
+
   closeSidebar();
+}
+
+function openAiPanel(){
+  console.log("AI button clicked"); // debug
+  switchTab('ai');
 }
 
 /* ── Search ──────────────────────────────────────────────────────────────── */
@@ -581,21 +614,73 @@ async function loadMsgs(){
 function appendMsg(m, isMine){
   const el=document.getElementById('chatMsgs');
   const emp=el.querySelector('.empty'); if(emp)emp.remove();
+
   const div=document.createElement('div');
-  div.className='msg '+(isMine?'mine':'theirs');
-  div.innerHTML = escHtml(m.content) + `<div class="msg-time" data-time="${m.createdAt}">${timeAgo(m.createdAt)}</div>`;
-  el.appendChild(div); el.scrollTop=el.scrollHeight;
+  div.className = 'msg ' + (isMine ? 'mine' : 'theirs');
+
+  let content = escHtml(m.content);
+
+  // ✅ AI LABEL
+  if(!isMine && m.content && m.content.toLowerCase().includes("ai")){
+    content = `<b style="color:#6d28d9;">🤖 AI</b><br>` + content;
+  }
+
+  div.innerHTML = content + `<div class="msg-time" data-time="${m.createdAt}">${timeAgo(m.createdAt)}</div>`;
+
+  el.appendChild(div);
+  el.scrollTop = el.scrollHeight;
 }
 
 async function sendMsg(){
-  const input=document.getElementById('chatIn');
-  const content=input.value.trim();
-  if(!content||!chatPartnerId)return;
-  input.value='';
+  const input = document.getElementById('chatIn');
+  const content = input.value.trim();
+
+  if(!content) return;
+
+  // 🤖 AI Trigger
+  if(content.toLowerCase().startsWith("@ai")){
+    const msg = content.replace("@ai", "").trim();
+
+    // show user message
+    appendMsg({
+      content: content,
+      createdAt: new Date()
+    }, true);
+
+    input.value = '';
+
+    try {
+      const res = await fetch('/ai/ask?message=' + encodeURIComponent(msg));
+      const data = await res.json();
+
+      // show AI reply
+      appendMsg({
+        content: data.data,
+        createdAt: new Date()
+      }, false);
+
+    } catch (e) {
+      appendMsg({
+        content: "AI error. Try again.",
+        createdAt: new Date()
+      }, false);
+    }
+
+    return;
+  }
+
+  // 💬 NORMAL CHAT
+  if(!chatPartnerId) return;
+
+  input.value = '';
+
   try{
-    const saved=await POST('/chat/send?receiverId='+chatPartnerId,{content});
+    const saved = await POST('/chat/send?receiverId='+chatPartnerId,{content});
     appendMsg(saved,true);
-  }catch(e){toast(e.message,'error');input.value=content;}
+  }catch(e){
+    toast(e.message,'error');
+    input.value = content;
+  }
 }
 
 /* ── Badges ──────────────────────────────────────────────────────────────── */
@@ -657,6 +742,67 @@ function timeAgo(timestamp) {
     }
   });
 }, 60000); // updates every 1 minute
+// ── Time Ago Function ─────────────────────────────────────────────
+function timeAgo(timestamp) {
+  if (!timestamp) return "Just now";
+
+  const now = new Date();
+  const msgTime = new Date(timestamp);
+
+  if (isNaN(msgTime)) return "Just now";
+
+  const diff = Math.floor((now - msgTime) / 1000);
+
+  if (diff < 10) return "Just now";
+  if (diff < 60) return diff + " sec ago";
+  if (diff < 3600) return Math.floor(diff / 60) + " min ago";
+  if (diff < 86400) return Math.floor(diff / 3600) + " hr ago";
+
+  return Math.floor(diff / 86400) + " days ago";
+}
+
+// ── Auto Update Message Time Every Minute ─────────────────────────
+setInterval(() => {
+  document.querySelectorAll(".msg-time").forEach(el => {
+    const ts = el.getAttribute("data-time");
+    if (ts) {
+      el.innerText = timeAgo(ts);
+    }
+  });
+}, 60000);
+async function sendAiMsg(){
+  const input = document.getElementById('aiInput');
+  const msg = input.value.trim();
+  if(!msg) return;
+
+  const box = document.getElementById('aiMsgs');
+
+  box.innerHTML += `<div class="msg mine">${escHtml(msg)}</div>`;
+  input.value = '';
+
+  try {
+    const res = await fetch('http://localhost:8080/ai/ask?message=' + encodeURIComponent(msg));
+
+    console.log("Status:", res.status);
+
+    if(!res.ok){
+      throw new Error("Server error " + res.status);
+    }
+
+    // ✅ FIX HERE
+    const reply = await res.text();
+
+    box.innerHTML += `<div class="msg theirs">
+      <b style="color:#6d28d9;">🤖 AI</b><br>${escHtml(reply)}
+    </div>`;
+
+  } catch(e){
+    console.error(e);
+    box.innerHTML += `<div class="msg theirs">⚠️ AI server not responding</div>`;
+  }
+
+  box.scrollTop = box.scrollHeight;
+}
 boot();
 </script>
 

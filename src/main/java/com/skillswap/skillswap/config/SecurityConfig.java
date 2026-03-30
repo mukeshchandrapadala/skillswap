@@ -35,6 +35,7 @@ public class SecurityConfig {
                     "/auth/public/**",          // public profile pages
                     "/notifications/subscribe",
                     "/h2-console/**",
+                    "/ai/**",
                     "/", "/index.html", "/login.html", "/register.html",
                     "/dashboard.html", "/profile.html", "/public-profile.html",
                     "/css/**", "/js/**", "/img/**", "/favicon.ico"
